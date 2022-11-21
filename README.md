@@ -1,2 +1,2 @@
-# NeuralUDF
-Volume rendering based surface reconstruction using Unsigned Distance Fields
+# Learning Unsigned Distance Fields for Multi-view Reconstruction of Surfaces with Arbitrary Topologies
+
