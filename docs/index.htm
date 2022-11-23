@@ -1,0 +1,278 @@
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <!--    <title> <br>  </title>-->
+    <title>NeuralUDF: Learning Unsigned Distance Fields for Multi-view Reconstruction of Surfaces with Arbitrary Topologies</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+
+    <!-- Meta tags for Zotero grab citation -->
+    <meta name="citation_title"
+          content="NeuralUDF: Learning Unsigned Distance Fields for Multi-view Reconstruction of Surfaces with Arbitrary Topologies">
+    <meta name="citation_author" content="Long, Xiaoxiao">
+    <meta name="citation_author" content="Lin, Cheng">
+    <meta name="citation_author" content="Liu, Lingjie">
+    <meta name="citation_author" content="Liu, Yuan">
+    <meta name="citation_author" content="Wang, Peng">
+    <meta name="citation_author" content="Theobalt, Christian">
+    <meta name="citation_author" content="Komura, Taku">
+    <meta name="citation_author" content="Wang, Wenping">
+    <meta name="citation_publication_date" content="2022">
+    <meta name="citation_conference_title" content="ARXIV">
+    <meta name="citation_pdf_url" content="">
+
+    <meta name="robots" content="index,follow">
+    <meta name="description"
+          content="
+		We present a novel method, called NeuralUDF,
+		for reconstructing surfaces with arbitrary topologies from 2D images via volume rendering.
+		Recent advances in neural rendering based reconstruction have achieved compelling results.
+		However, these methods are limited to objects with closed surfaces since they adopt Signed Distance Function (SDF)
+		as surface representation which requires the target shape to be divided into inside and outside.
+		In this paper, we propose to represent surfaces as the Unsigned Distance Function (UDF) and develop
+		a new volume rendering scheme to learn the neural UDF representation.
+    Specifically, a new density function that correlates the property of UDF with the volume rendering scheme
+    is introduced for robust optimization of the UDF fields.
+    Experiments on the DTU and DeepFashion3D datasets show that our method not only enables high-quality
+    reconstruction of non-closed shapes with complex typologies, but also achieves comparable performance
+    to the SDF based methods on the reconstruction of closed surfaces.
+		">
+    <link rel="author" href="https://www.xxlong.site/"/>
+
+
+    <!-- Fonts and stuff -->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,800italic,400,700,800'
+          rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="css/project.css" media="screen"/>
+    <link rel="stylesheet" type="text/css" media="screen" href="css/iconize.css"/>
+    <script src="js/google-code-prettify/prettify.js"></script>
+</head>
+
+
+<body>
+
+<div id="content">
+    <div id="content-inner">
+        <div class="section logos" style="text-align:center">
+            <a href="https://www.hku.hk/" target="_blank"><IMG src="./logos/Logo_HKU.png" height="35"
+                                                               border="0"></a></td>
+            <a href="https://www.tencent.com/" target="_blank"><IMG src="./logos/Logo_tencent_games.png" height="35"
+                                                                    border="0"></a></td>
+            <a href="https://www.mpi-inf.mpg.de/home" target="_blank"><IMG src="./logos/logo_mpi.png" height="35"
+                                                                    border="0"></a></td>
+            <a href="https://www.tamu.edu/" target="_blank"><IMG src="./logos/logo_TAMU.png" height="35"
+                                                                 border="0"></a></td>
+        </div>
+
+        <div class="section head">
+
+            <h1>NeuralUDF: Learning Unsigned Distance Fields <br>
+                for Multi-view Reconstruction of Surfaces with Arbitrary Topologies </h1>
+
+            <div class="authors">
+                <a href="https://www.xxlong.site/" target="_blank">Xiaoxiao Long</a><sup> 1, 2</sup>&#160;&#160;
+                <a href="https://clinplayer.github.io/" target="_blank">Cheng Lin</a><sup> 1</sup>&#160;&#160;
+                <a href="https://lingjie0206.github.io/" target="_blank">Lingjie Liu</a><sup> 3</sup>&#160;&#160;
+                <a href="https://liuyuan-pal.github.io/" target="_blank">Yuan Liu</a><sup> 2</sup>&#160;&#160;
+                <a href="https://scholar.google.com.sg/citations?user=KvXvmawAAAAJ&hl=en" target="_blank">Peng Wang</a><sup> 2</sup>&#160;&#160;
+                <a href="https://people.mpi-inf.mpg.de/~theobalt/" target="_blank">Christian Theobalt</a><sup>3</sup>&#160;&#160;
+                <a href="https://homepages.inf.ed.ac.uk/tkomura/" target="_blank">Taku Komura</a><sup>2</sup>&#160;&#160;
+                <a href="https://www.cs.hku.hk/people/academic-staff/wenping/">Wenping Wang</a><sup> 4</sup>&#160;&#160;
+            </div>
+
+            <div class="affiliations">
+                <sup>1</sup><a href="https://www.tencent.com/" target="_blank">Tencent Games</a>&#160;&#160;
+                <sup>2</sup><a href="https://www.hku.hk/" target="_blank">The University of Hong Kong</a>&#160;&#160;
+                <sup>3</sup><a href="https://www.mpi-inf.mpg.de/home" target="_blank">Max Planck Institute for Informatics</a>&#160;&#160;
+                <sup>4</sup><a href="https://www.tamu.edu/" target="_blank">Texas A&M University</a>&#160;&#160;
+            </div>
+
+            <div class="venue"><a href="" target="_blank">Arxiv 2022 </a></div>
+
+            <div class="section downloads">
+                <!--<h2>Downloads</h2>-->
+                <center>
+                    <ul>
+                        <li class="grid">
+                            <div class="griditem">
+                                <a href="https://arxiv.org/pdf/.pdf" target="_blank"
+                                   class="imageLink"><img
+                                        src="./images/pdf.png"></a><br/>
+                                <a href="https://arxiv.org/pdf/.pdf">Paper</a>
+                            </div>
+                        </li>
+                        <li class="grid">
+                            <div class="griditem">
+                                <a href="https://github.com/xxlong0/" target="_blank"
+                                   class="imageLink"><img
+                                        src="./images/data_ico.png"></a><br/>
+                                <a href="https://github.com/xxlong0/">Code</a>
+
+                            </div>
+                        </li>
+
+                    </ul>
+                </center>
+            </div>
+        </div>
+
+        <div class="section abstract">
+            <h2>Abstract</h2><br>
+            <div class="row" style="margin-bottom:5px">
+                <div class="col" style="text-align:center">
+                    <img src="./images/teaser.png" style="width:1100px;height:auto;"
+                         style="width:70%; margin-bottom:20px">
+
+                </div>
+
+            </div>
+
+            <p>
+                We present a novel method, called NeuralUDF, for reconstructing surfaces with arbitrary topologies from 2D images via volume rendering.
+                Recent advances in neural rendering based reconstruction have achieved compelling results.
+                However, these methods are limited to objects with closed surfaces since they adopt Signed Distance Function (SDF)
+                as surface representation which requires the target shape to be divided into inside and outside.
+                In this paper, we propose to represent surfaces as the Unsigned Distance Function (UDF) and
+                develop a new volume rendering scheme to learn the neural UDF representation.
+                Specifically, a new density function that correlates the property of UDF with the volume rendering scheme is introduced for robust optimization of the UDF fields.
+                Experiments on the DTU and DeepFashion3D datasets show that our method not only enables high-quality reconstruction of non-closed shapes with complex typologies, but also achieves comparable performance to the SDF based methods on the reconstruction of closed surfaces.
+            </p>
+            <!--            </p>-->
+        </div>
+
+
+        <div class="section introduction">
+            <h2>Introduction</h2><br>
+            <div class="row" style="margin-bottom:5px">
+                <div class="col" style="text-align:center">
+                <video width="70%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                    <source src="./videos/intro.mp4" type="video/mp4">
+                </video>
+
+                </div>
+
+            </div>
+
+            <p>
+                Given a set of posed 2D images of a 3D object with either open surfaces or closed surfaces,
+                our goal is to reconstruct the surfaces of the object.
+                Specifically, we represent the surfaces as the zero level sets of an implicit Unsigned Distance Function (UDF)
+                encoded by an MLP, and develop a new volume rendering scheme to learn the neural UDF representation.
+            </p>
+            <!--            </p>-->
+        </div>
+
+        <!--        full video-->
+        <!--        <div class="section abstract">-->
+        <!--            <h2>Full Video</h2><br>-->
+        <!--            <center>-->
+        <!--                &lt;!&ndash; <iframe width="640" height="360" src="data/video.mp4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe> &ndash;&gt;-->
+        <!--                <iframe width="640" height="360" src="https://www.youtube.com/embed/RFqPwH7QFEI" frameborder="0"-->
+        <!--                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"-->
+        <!--                        allowfullscreen></iframe>-->
+        <!--                &lt;!&ndash;iframe src="./data/video.mp4" allow="autoplay; encrypted-media" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" width="560" height="315" frameborder="0"></iframe&ndash;&gt;-->
+        <!--                &lt;!&ndash;<p style="font-size:11px; text-align:center">-->
+        <!--                Download Video: <a href="data/video.mp4" target="_blank">HD</a> (MP4, 111 MB)-->
+        <!--            </p>&ndash;&gt;-->
+        <!--            </center>-->
+        <!--        </div>-->
+
+        <div class="section abstract">
+            <h2>Comparision on objects with open surfaces</h2>
+            <p>
+                To validate the ability of NeuralUDF to model open surfaces, we conduct comparisons with current SDF based methods on DeepFashion3D dataset.
+                As you can see, the SDF based methods struggle to reconstruct the objects with open surfaces, and model such objects with closed surfaces,
+                thus leading to erroneous geometries. In contrast, due to the flexibility of UDF representation, our method successfully model the open surfaces.
+            </p>
+            <center>
+                <!-- <iframe width="640" height="360" src="./mp4/composite3.mp4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe> -->
+                <video width="70%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                    <source src="./videos/garment0.mp4" type="video/mp4">
+                </video>
+                <video width="70%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                    <source src="./videos/garment1.mp4" type="video/mp4">
+                </video>
+<!--                <video width="60%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">-->
+<!--                    <source src="./videos/garment2.mp4" type="video/mp4">-->
+<!--                </video>-->
+            </center>
+        </div>
+
+        <div class="section abstract">
+            <h2>Comparisions on objects with closed surfaces</h2>
+            <p>
+                Although our model is only trained on DTU, our model still generalizes well to unseen scenes of
+                BlendedMVS dataset.
+            </p>
+            <center>
+                <!-- <iframe width="640" height="360" src="./mp4/composite3.mp4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe> -->
+                <video width="80%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                    <source src="./videos/dtu0.mp4" type="video/mp4">
+                </video>
+                <video width="80%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                    <source src="./videos/dtu1.mp4" type="video/mp4">
+                </video>
+            </center>
+        </div>
+
+        <div class="section abstract">
+            <h2>More results</h2>
+            <center>
+                <!-- <iframe width="640" height="360" src="./mp4/composite3.mp4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe> -->
+                <video width="80%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                    <source src="./videos/supp_plant.mp4" type="video/mp4">
+                </video>
+            </center>
+        </div>
+
+
+                <div class="section abstract">
+                    <h2>Citation</h2>
+                    <div class="section bibtex" style="text-align:left; margin-left: 40px; margin-right: 40px">
+        					<pre>
+@article{long2022neuraludf,
+      title={NeuralUDF: Learning Unsigned Distance Fields for Multi-view Reconstruction of Surfaces with Arbitrary Topologies},
+      author={Long, Xiaoxiao and Lin, Cheng and Liu, Lingjie and Liu, Yuan and Wang, Peng and Theobalt, Christian and Komura, Taku and Wang, Wenping},
+      journal={ARXIV},
+      year={2022}
+    }
+                    </div>
+                </div>
+
+
+        <div class="section acknowledgments">
+            <h2>Acknowledgments</h2>
+            <p>
+                We thank the rendering codes of DeepFashion3D dataset provided by Xiaoxu Meng.
+                This project is done during the internship at Tencent Games.
+            </p>
+        </div-->
+
+        <!--<div class="section acknowledgments">
+            <h2>Useful Links</h2>
+            <p>
+                <a href="https://www.bilibili.com/video/BV1e7411c7kR?p=52">Talk (in Chinese) at GAMES Webinar</a>
+                <a href="http://irc.cs.sdu.edu.cn/2020-summer-school/video/7.18%20pm%20Lingjie%20Liu.mp4
+            </p>
+        </div-->
+
+        <div class="section">
+            <hr class="smooth">
+            This page is <a href="http://www.zotero.org" target="_blank">Zotero</a> translator friendly. Page last
+            updated
+            <script type="text/javascript">
+                var m = "This page was last updated: " + document.lastModified;
+                var p = m.length - 9;
+                document.writeln("<left>");
+                document.write(m.substring(p, 0) + ".");
+                document.writeln("</left>");
+            </script>
+            <!--            <a href="https://www.mpi-inf.mpg.de/imprint/">Imprint</a>. <a-->
+            <!--                href="https://data-protection.mpi-klsb.mpg.de/inf/gvv.mpi-inf.mpg.de/projects/">Data Protection</a>.-->
+        </div>
+    </div>
+</div>
+</body>
+</html>
