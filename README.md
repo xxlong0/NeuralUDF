@@ -1,6 +1,6 @@
 # Learning Unsigned Distance Fields for Multi-view Reconstruction of Surfaces with Arbitrary Topologies
 
-## [Project Page](https://www.xxlong.site/NeuralUDF/) | [Paper](https://arxiv.org/pdf/.pdf) 
+## [Project Page](https://www.xxlong.site/NeuralUDF/) | [Paper](./docs/NeuralUDF_arxiv.pdf) 
 
 ![](./docs/images/teaser.png)
 
