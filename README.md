@@ -2,7 +2,7 @@
 
 ## [Project Page](https://www.xxlong.site/NeuralUDF/) | [Paper](https://arxiv.org/abs/2211.14173) 
 
-we will release the code soon.
+
 
 ![](./docs/images/teaser.png)
 
