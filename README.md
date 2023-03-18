@@ -34,9 +34,10 @@ python setup.py build_ext --inplace
 cd ..
 ```
 
-
-
 #### Data Convention
+Download the preprocessed 
+[Deepfashion3D dataset](https://connecthkuhk-my.sharepoint.com/:u:/g/personal/xxlong_connect_hku_hk/EdAROUHE2UVHjrLruv9oVhsBN_t8SrndtkbBpNFhJjEZFQ?e=sZr0LE)
+ we use and [GT point clouds](https://connecthkuhk-my.sharepoint.com/:u:/g/personal/xxlong_connect_hku_hk/EeBYbTaJHXZBss0hts1xNCwBlZ-Ju-8kbFPl_P4_SQHeQw?e=lSmjI1):
 The DTU data and Deepfashion3d data are organized as follows:
 
 ```
@@ -84,6 +85,11 @@ The corresponding mesh can be found in `exp/<case_name>/<exp_name>/meshes/<iter_
 ### Train NeuralUDF with your custom data
 
 More information can be found in [preprocess_custom_data](https://github.com/Totoro97/NeuS/tree/main/preprocess_custom_data) of NeuS.
+
+### The reconstruction results of ours and baselines
+You can download the results of the methods mentioned in the paper here:
+- [DeepFashion3D](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/xxlong_connect_hku_hk/Et1G0_59EWJNvebXoVhv7PUBU2WQXU12UhEDsID2t-mZ7g?e=fXEKhn) 
+- [DTU]()
 
 ### Discussions and future work
 As we stated in the paper, it's more difficult to train a UDF field than a SDF field, 
