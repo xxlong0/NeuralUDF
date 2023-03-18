@@ -214,12 +214,9 @@ class Runner:
         self.train_udf()
 
     def get_flip_saturation(self, flip_saturation_max=0.9):
-        # ? should mask out all pre-surface points?
         start = 10000
         if self.iter_step < start:
             flip_saturation = 0.0
-        # elif self.iter_step < self.end_iter * 0.2:
-        #     flip_saturation = flip_saturation_max * ((self.iter_step - start) / (self.end_iter * 0.5 - start))
         elif self.iter_step < self.end_iter * 0.5:
             flip_saturation = flip_saturation_max
         else:
@@ -310,8 +307,7 @@ class Runner:
                                               query_c2w=ref_c2w,
                                               img_index=None,
                                               rays_uv=rays_uv if color_patch_weight > 0 else None,
-                                              cos_anneal_ratio=self.get_cos_anneal_ratio(),
-                                              warmup_sample=False)
+                                              cos_anneal_ratio=self.get_cos_anneal_ratio())
 
             weight_sum = render_out['weight_sum']
             weight_sum_fg_bg = render_out['weight_sum_fg_bg']
@@ -536,7 +532,6 @@ class Runner:
         render_out = self.renderer.render(rays_o, rays_d, near[:1, :], far[:1, :],
                                           cos_anneal_ratio=self.get_cos_anneal_ratio(),
                                           background_rgb=background_rgb,
-                                          warmup_sample=True,
                                           flip_saturation=self.get_flip_saturation())
 
         udf = render_out['udf'][0].detach().cpu().numpy()
@@ -906,12 +901,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    # deviceIDs = GPUtil.getAvailable(order='memory', limit=1, maxLoad=0.5, maxMemory=0.5, includeNan=False,
-    #                                 excludeID=[], excludeUUID=[])
-    # args.gpu = deviceIDs[0]
-    #
-    # torch.cuda.set_device(args.gpu)
-
     runner = Runner(args.conf, args.mode, args.case, args.model_type, args.is_continue, args)
 
     if args.mode == 'train':
@@ -919,8 +908,6 @@ if __name__ == '__main__':
         runner.extract_udf_mesh(resolution=512, world_space=True, dist_threshold_ratio=5.0)
     elif args.mode == 'validate_mesh':
         runner.validate_mesh(world_space=False, resolution=args.resolution, threshold=args.threshold)
-    elif args.mode == 'save_hdf5':
-        runner.save_hdf5()
     elif args.mode == 'extract_udf_mesh':
         runner.extract_udf_mesh(resolution=args.resolution, world_space=True, dist_threshold_ratio=5.0)
     elif args.mode.startswith('validate_image'):
@@ -933,15 +920,3 @@ if __name__ == '__main__':
             # for i in range(-runner.dataset.H // 4, runner.dataset.H // 4, 1):
             print('vis_one_ray: %d' % i)
             runner.visualize_one_ray(img_idx=48, px=runner.dataset.W // 2 + i, py=runner.dataset.H // 2)
-    elif args.mode.startswith('video'):
-        _, img_idx_0, img_idx_1, start_id = args.mode.split('_')
-        img_idx_0 = int(img_idx_0)
-        img_idx_1 = int(img_idx_1)
-        start_id = int(start_id)
-
-        ic(img_idx_0, img_idx_1, start_id)
-        for idx in range(start_id, start_id + 60):
-            print(idx)
-            runner.validate_novel_image(img_idx_0, img_idx_1, np.sin((((idx - 0) / 60.0) - 0.5) * np.pi) * 0.5 + 0.5,
-                                        resolution_level=2,
-                                        out_idx=idx)

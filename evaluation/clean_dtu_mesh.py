@@ -2,61 +2,11 @@ import numpy as np
 import cv2 as cv
 import os
 from glob import glob
-# from scipy.io import loadmat
 import trimesh
-import open3d as o3d
 import torch
-from tqdm import tqdm
-
 import sys
 
 sys.path.append("../")
-
-
-def gen_rays_from_single_image(H, W, image, intrinsic, c2w, depth=None, mask=None):
-    """
-    generate rays in world space, for image image
-    :param H:
-    :param W:
-    :param intrinsics: [3,3]
-    :param c2ws: [4,4]
-    :return:
-    """
-    device = image.device
-    ys, xs = torch.meshgrid(torch.linspace(0, H - 1, H),
-                            torch.linspace(0, W - 1, W))  # pytorch's meshgrid has indexing='ij'
-    p = torch.stack([xs, ys, torch.ones_like(ys)], dim=-1)  # H, W, 3
-
-    # normalized ndc uv coordinates, (-1, 1)
-    ndc_u = 2 * xs / (W - 1) - 1
-    ndc_v = 2 * ys / (H - 1) - 1
-    rays_ndc_uv = torch.stack([ndc_u, ndc_v], dim=-1).view(-1, 2).float().to(device)
-
-    intrinsic_inv = torch.inverse(intrinsic)
-
-    p = p.view(-1, 3).float().to(device)  # N_rays, 3
-    p = torch.matmul(intrinsic_inv[None, :3, :3], p[:, :, None]).squeeze()  # N_rays, 3
-    rays_v = p / torch.linalg.norm(p, ord=2, dim=-1, keepdim=True)  # N_rays, 3
-    rays_v = torch.matmul(c2w[None, :3, :3], rays_v[:, :, None]).squeeze()  # N_rays, 3
-    rays_o = c2w[None, :3, 3].expand(rays_v.shape)  # N_rays, 3
-
-    image = image.permute(1, 2, 0)
-    color = image.view(-1, 3)
-    depth = depth.view(-1, 1) if depth is not None else None
-    mask = mask.view(-1, 1) if mask is not None else torch.ones([H * W, 1]).to(device)
-    sample = {
-        'rays_o': rays_o,
-        'rays_v': rays_v,
-        'rays_ndc_uv': rays_ndc_uv,
-        'rays_color': color,
-        # 'rays_depth': depth,
-        'rays_mask': mask,
-        'rays_norm_XYZ_cam': p  # - XYZ_cam, before multiply depth
-    }
-    if depth is not None:
-        sample['rays_depth'] = depth
-
-    return sample
 
 
 def load_K_Rt_from_P(filename, P=None):
@@ -229,90 +179,14 @@ def clean_mesh_by_faces_num(mesh, faces_num=500):
     return new_mesh
 
 
-def clean_mesh_faces_outside_frustum(old_mesh_file, new_mesh_file, imgs_idx, H=1200, W=1600, mask_dilated_size=11,
-                                     isolated_face_num=500, keep_largest=True):
-    '''Remove faces of mesh which cannot be orserved by all cameras
-    '''
-    # if path_mask_npz:
-    #     path_save_clean = IOUtils.add_file_name_suffix(path_save_clean, '_mask')
-
-    cameras = np.load('{}/scan{}/cameras.npz'.format(DTU_DIR, scan))
-    mask_lis = sorted(glob('{}/scan{}/mask/*.png'.format(DTU_DIR, scan)))
-
-    mesh = trimesh.load(old_mesh_file)
-    intersector = trimesh.ray.ray_pyembree.RayMeshIntersector(mesh)
-
-    all_indices = []
-    chunk_size = 5120
-    for i in range(len(mask_lis)):
-        mask_image = cv.imread(mask_lis[i])
-        kernel_size = mask_dilated_size  # default 101
-        kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (kernel_size, kernel_size))
-        mask_image = cv.dilate(mask_image, kernel, iterations=1)
-
-        P = cameras['world_mat_{}'.format(i)]
-
-        intrinsic, pose = load_K_Rt_from_P(None, P[:3, :])
-
-        rays = gen_rays_from_single_image(H, W, torch.from_numpy(mask_image).permute(2, 0, 1).float(),
-                                          torch.from_numpy(intrinsic)[:3, :3].float(),
-                                          torch.from_numpy(pose).float())
-        rays_o = rays['rays_o']
-        rays_d = rays['rays_v']
-        rays_mask = rays['rays_color']
-
-        rays_o = rays_o.split(chunk_size)
-        rays_d = rays_d.split(chunk_size)
-        rays_mask = rays_mask.split(chunk_size)
-
-        for rays_o_batch, rays_d_batch, rays_mask_batch in tqdm(zip(rays_o, rays_d, rays_mask)):
-            rays_mask_batch = rays_mask_batch[:, 0] > 128
-            rays_o_batch = rays_o_batch[rays_mask_batch]
-            rays_d_batch = rays_d_batch[rays_mask_batch]
-
-            idx_faces_hits = intersector.intersects_first(rays_o_batch.cpu().numpy(), rays_d_batch.cpu().numpy())
-            all_indices.append(idx_faces_hits)
-
-    values = np.unique(np.concatenate(all_indices, axis=0))
-    mask_faces = np.ones(len(mesh.faces))
-    mask_faces[values[1:]] = 0
-    print(f'Surfaces/Kept: {len(mesh.faces)}/{len(values)}')
-
-    mesh_o3d = o3d.io.read_triangle_mesh(old_mesh_file)
-    print("removing triangles by mask")
-    mesh_o3d.remove_triangles_by_mask(mask_faces)
-
-    o3d.io.write_triangle_mesh(new_mesh_file, mesh_o3d)
-
-    # # clean meshes
-    new_mesh = trimesh.load(new_mesh_file)
-    cc = trimesh.graph.connected_components(new_mesh.face_adjacency, min_len=500)
-    mask = np.zeros(len(new_mesh.faces), dtype=np.bool)
-    mask[np.concatenate(cc)] = True
-    new_mesh.update_faces(mask)
-    new_mesh.remove_unreferenced_vertices()
-    new_mesh.export(new_mesh_file)
-
-    # meshes = new_mesh.split(only_watertight=False)
-    #
-    # if not keep_largest:
-    #     meshes = [mesh for mesh in meshes if len(mesh.faces) > isolated_face_num]
-    #     # new_mesh = meshes[np.argmax([len(mesh.faces) for mesh in meshes])]
-    #     merged_mesh = trimesh.util.concatenate(meshes)
-    #     merged_mesh.export(new_mesh_file)
-    # else:
-    #     new_mesh = meshes[np.argmax([len(mesh.faces) for mesh in meshes])]
-    #     new_mesh.export(new_mesh_file)
-
-    o3d.io.write_triangle_mesh(new_mesh_file.replace(".ply", "_raw.ply"), mesh_o3d)
-    print("finishing removing triangles")
-
-
-def clean_outliers(old_mesh_file, new_mesh_file):
+def clean_outliers(old_mesh_file, new_mesh_file, faces_num=500, keep_largest=True):
     new_mesh = trimesh.load(old_mesh_file)
 
-    meshes = new_mesh.split(only_watertight=False)
-    new_mesh = meshes[np.argmax([len(mesh.faces) for mesh in meshes])]
+    if keep_largest:
+        meshes = new_mesh.split(only_watertight=False)
+        new_mesh = meshes[np.argmax([len(mesh.faces) for mesh in meshes])]
+    else:
+        new_mesh = clean_mesh_by_faces_num(new_mesh, faces_num)
 
     new_mesh.export(new_mesh_file)
 
@@ -321,33 +195,26 @@ if __name__ == "__main__":
 
     # scans = [24, 37, 40, 55, 63, 65, 69, 83, 97, 105, 106, 110, 114, 118, 122]
     scans = [24]
-    trim = 100
     mask_kernel_size = 11
 
-    DTU_DIR = "/home/xiaoxiao/dataset/DTU_IDR/DTU"
+    DTU_DIR = "~/dataset/DTU_IDR/DTU"
 
     for scan in scans:
-        base_path = f"/home/xiaoxiao/Workplace/open_surface/UdfNeuS/exp/udf/dtu/mesh/ours"
+        base_path = f"exp/udf/dtu/mesh/ours"
         print("processing scan%d" % scan)
         dir_path = os.path.join(base_path, f'scan{scan}')
-        # dir_path = os.path.join(base_path, f'baseline_dtu_{scan}')
 
-        # # - clean for visualizationdir_path = os.path.join(base_path, "scan%d" % scan)
-        try:
-            old_mesh_file = glob(os.path.join(dir_path, "*.ply"))[0]
+        old_mesh_file = glob(os.path.join(dir_path, "*.ply"))[0]
 
-            clean_mesh_file = os.path.join(dir_path, "clean_%03d.ply" % scan)
-            visualhull_mesh_file = os.path.join(dir_path, "visualhull_%03d.ply" % scan)
-            final_mesh_file = os.path.join(dir_path, "final_%03d.ply" % scan)
+        clean_mesh_file = os.path.join(dir_path, "clean_%03d.ply" % scan)
+        visualhull_mesh_file = os.path.join(dir_path, "visualhull_%03d.ply" % scan)
+        final_mesh_file = os.path.join(dir_path, "final_%03d.ply" % scan)
 
-            clean_mesh_faces_by_mask(old_mesh_file, clean_mesh_file, scan, None, minimal_vis=2,
-                                     mask_dilated_size=mask_kernel_size)
-            # clean_outliers(clean_mesh_file, clean_mesh_file)
-            clean_mesh_faces_by_visualhull(clean_mesh_file, visualhull_mesh_file, scan, None, minimal_vis=2,
-                                           mask_dilated_size=mask_kernel_size + 20)
-            # clean_mesh_faces_outside_frustum(clean_mesh_file, final_mesh_file, None, mask_dilated_size=mask_kernel_size)
+        clean_mesh_faces_by_mask(old_mesh_file, clean_mesh_file, scan, None, minimal_vis=2,
+                                 mask_dilated_size=mask_kernel_size)
 
-            # clean_outliers(visualhull_mesh_file, visualhull_mesh_file)  # do not need
-            print("finish processing scan%d" % scan)
-        except:
-            print("no ", scan)
+        clean_mesh_faces_by_visualhull(clean_mesh_file, visualhull_mesh_file, scan, None, minimal_vis=2,
+                                       mask_dilated_size=mask_kernel_size + 20)
+        # optional; keep the largest mesh or remove small isolated meshes
+        # clean_outliers(visualhull_mesh_file, visualhull_mesh_file, keep_largest=True)  # do not need
+        print("finish processing scan%d" % scan)

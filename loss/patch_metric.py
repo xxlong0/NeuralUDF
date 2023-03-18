@@ -1,10 +1,4 @@
-#  NeuralWarp  All rights reseved to Thales LAS and ENPC.
-#
-#  This code is freely available for academic use only and Provided “as is” without any warranty.
-#
-#  Modification are allowed for academic research provided that the following conditions are met :
-#    * Redistributions of source code or any format must retain the above copyright notice and this list of conditions.
-#    * Neither the name of Thales LAS and ENPC nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+#  Some of the codes are borrowed from SparseNeuS and NeuralWarp
 
 import torch
 import torch.nn.functional as F
@@ -88,12 +82,6 @@ class SSIM(torch.nn.Module):
         patch_img_gt = img_gt.reshape(ntotpx, patch_size, patch_size, channels).permute(0, 3, 1, 2)
 
         return _ssim(patch_img_pred, patch_img_gt, self.window, self.channel)
-
-
-def color2gray_encode(img):
-    rgb_mapping1 = [0.299, 0.587, 0.114]
-    rgb_mapping2 = [0.2126, 0.7152, 0.0722]
-    gray0 = torch.mean(img, dim=-1, keepdim=True)
 
 
 class NCC(torch.nn.Module):

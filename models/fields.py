@@ -122,9 +122,7 @@ class UDFNetwork(nn.Module):
                  multires=0,
                  scale=1,
                  bias=0.5,
-                 udf_shift=0.0,
                  geometric_init=True,
-                 constant_init=False,
                  weight_norm=True,
                  udf_type='abs',
                  ):
@@ -144,7 +142,6 @@ class UDFNetwork(nn.Module):
         self.scale = scale
 
         self.geometric_init = geometric_init
-        self.constant_init = constant_init
 
         # self.bias = 0.5
         # bias = self.bias
@@ -175,11 +172,6 @@ class UDFNetwork(nn.Module):
                     torch.nn.init.constant_(lin.bias, 0.0)
                     torch.nn.init.normal_(lin.weight, 0.0, np.sqrt(2) / np.sqrt(out_dim))
 
-            if self.constant_init:
-                print("using constant init")
-                if l == self.num_layers - 2:
-                    torch.nn.init.constant_(lin.bias, udf_shift)
-
             if weight_norm:
                 lin = nn.utils.weight_norm(lin)
 
@@ -188,7 +180,6 @@ class UDFNetwork(nn.Module):
         self.activation = nn.Softplus(beta=100)
         self.relu = nn.ReLU()
         self.udf_type = udf_type
-        self.udf_shift = udf_shift
 
     def udf_out(self, x):
         if self.udf_type == 'abs':
@@ -216,12 +207,7 @@ class UDFNetwork(nn.Module):
             if l < self.num_layers - 2:
                 x = self.activation(x)
 
-        if self.constant_init:
-            shift = 0
-        else:
-            shift = self.udf_shift
-
-        return torch.cat([self.udf_out(x[:, :1] + shift) / self.scale, x[:, 1:]],
+        return torch.cat([self.udf_out(x[:, :1]) / self.scale, x[:, 1:]],
                          dim=-1)
 
     def udf(self, x):
@@ -701,12 +687,6 @@ class BetaNetwork(nn.Module):
     def set_gamma(self, x):
         self.gamma = nn.Parameter(torch.Tensor([x]),
                                   requires_grad=self.gamma.requires_grad).to(self.gamma.device)
-
-    # @torch.no_grad()
-    # def increase_beta(self, x, beta_max):
-    #     if self.beta < beta_max:
-    #         self.beta = nn.Parameter(torch.Tensor(self.beta.cpu().numpy() + x),
-    #                                  requires_grad=self.beta.requires_grad).to(self.beta.device)
 
     def forward(self):  # z_diff = z_vals - mean_depth
         beta = self.get_beta()

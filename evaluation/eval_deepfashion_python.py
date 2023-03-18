@@ -63,12 +63,9 @@ if __name__ == '__main__':
 
     for scan in scans:
 
-        # base_dir = f"/home/xiaoxiao/Workplace/open_surface/UdfNeuS/exp/udf/garment_sphere/{method}/{scan}"
-        # base_dir = f"/home/xiaoxiao/Workplace/open_surface/UdfNeuS/exp/udf/garment_sphere/{method}/{scan}"
-        # base_dir = f"/home/xiaoxiao/Workplace/open_surface/UdfNeuS/exp/COLMAP/garment_sphere/{scan}/dense"
-        GT_DIR = f"/home/xiaoxiao/dataset/deepfashion3d_point_cloud/{scan}"
+        GT_DIR = f"/dataset/deepfashion3d_point_cloud/{scan}"
 
-        base_dir = "/home/xiaoxiao/Workplace/open_surface/UdfNeuS/exp/udf/garment_sphere/300/udf_garment_woblending_mixsample"
+        base_dir = "/exp/udf/deepfashion3d/300/expname"
 
         print("processing scan%d" % scan)
 

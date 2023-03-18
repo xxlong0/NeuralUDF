@@ -120,7 +120,7 @@ class UDFRendererBlending:
                  upsampling_type='classical',  # classical is better for DTU
                  sparse_scale_factor=25000,
                  h_patch_size=3,
-                 use_norm_for_cos=False
+                 use_norm_grad_for_cosine=False
                  ):
         # the networks
         self.nerf = nerf
@@ -136,16 +136,17 @@ class UDFRendererBlending:
         self.perturb = perturb
         self.up_sample_steps = up_sample_steps
 
-        self.sigmoid = nn.Sigmoid()
-
         self.sdf2alpha_type = sdf2alpha_type
         self.upsampling_type = upsampling_type
         self.sparse_scale_factor = sparse_scale_factor
 
+        # the setting of patch blending
         self.h_patch_size = h_patch_size
         self.patch_projector = PatchProjector(self.h_patch_size)
 
-        self.use_norm_for_cos = use_norm_for_cos
+        self.use_norm_grad_for_cosine = use_norm_grad_for_cosine
+
+        self.sigmoid = nn.Sigmoid()
 
     def udf2logistic(self, udf, inv_s, gamma=20, abs_cos_val=1.0, cos_anneal_ratio=None):
 
@@ -375,17 +376,16 @@ class UDFRendererBlending:
 
         beta = beta_network.get_beta().clip(1e-6, 1e6)
         gamma = beta_network.get_gamma().clip(1e-6, 1e6)
-        # zeta = beta_network.get_zeta().clip(1e-6, 1e6)
 
         # ? use gradient w/o normalization
-        if self.use_norm_for_cos:
+        if self.use_norm_grad_for_cosine:
             true_cos = (dirs * gradients_norm).sum(-1, keepdim=True)  # [N, 1]
         else:
             true_cos = (dirs * gradients).sum(-1, keepdim=True)  # [N, 1]
 
         with torch.no_grad():
             cos = (dirs * gradients_norm).sum(-1, keepdim=True)  # [N, 1]
-            flip_sign = torch.sign(cos) * -1
+            flip_sign = torch.sign(cos) * -1  # used for visualize the surface normal
             flip_sign[flip_sign == 0] = 1
 
         vis_prob = None
@@ -731,8 +731,6 @@ class UDFRendererBlending:
         udf_nn_output = udf_nn_output.reshape(batch_size, self.n_samples, -1)
         udf = udf_nn_output[:, :, 0]
 
-        beta = self.beta_network.get_beta().clip(1e-6, 1e6)
-        gamma = self.beta_network.get_gamma().clip(1e-6, 1e6)
         for i in range(self.up_sample_steps):
             new_z_vals = up_sample(rays_o,
                                    rays_d,
@@ -835,7 +833,8 @@ class UDFRendererBlending:
     def up_sample_no_occ_aware(self, rays_o, rays_d, z_vals, udf, sample_dist,
                                n_importance, inv_s, beta, gamma, ):
         """
-        not occlusion-aware; simply sample more points near 0-level sets
+        Different with NeuS, here we sample more points at all possible surfaces where udf is close to 0;
+        Since unlike that SDF has clear sign changes, UDF sampling may miss the true surfaces
         """
         device = z_vals.device
         batch_size, n_samples = z_vals.shape
@@ -847,9 +846,6 @@ class UDFRendererBlending:
 
         dists = z_vals[..., 1:] - z_vals[..., :-1]
         dists = torch.cat([dists, torch.Tensor([sample_dist]).to(device).expand(dists[..., :1].shape)], -1)
-
-        # dist_sorted, _  = dists.sort(dim=-1)
-        # dist_mean = (dist_sorted[:, :20]).mean(dim=-1, keepdims=True)
 
         dirs = rays_d[:, None, :].expand(pts.shape)
 
