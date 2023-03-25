@@ -69,8 +69,10 @@ bash bashs/bash_dtu_blending_ft.sh --gpu 0 --case scan118
 ```
 
 - **On objects with open surfaces (Deepfashion3D)**
+If the initial sparse_weight is inappropriate, adjust it in the fine-tuning stage
 ```shell
-
+bash bashs/bash_garment_blending.sh --gpu 0 --case scan320 -s 0.001
+bash bashs/bash_garment_blending_ft.sh --gpu 0 --case scan320 -s 0.01
 ```
 
 - **Extract surface from trained model** 
@@ -89,7 +91,7 @@ More information can be found in [preprocess_custom_data](https://github.com/Tot
 ### The reconstruction results of ours and baselines
 You can download the results of the methods mentioned in the paper here:
 - [DeepFashion3D](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/xxlong_connect_hku_hk/Et1G0_59EWJNvebXoVhv7PUBU2WQXU12UhEDsID2t-mZ7g?e=fXEKhn) 
-- [DTU]()
+- [DTU](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/xxlong_connect_hku_hk/EuEd4C4Fj89JoDY4--ZKJUsBdbscnaBjwkwvdxTejH8IPQ?e=W916hg)
 
 ### Discussions and future work
 As we stated in the paper, it's more difficult to train a UDF field than a SDF field, 
