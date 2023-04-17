@@ -11,7 +11,7 @@ from torch.utils.tensorboard import SummaryWriter
 from icecream import ic
 from tqdm import tqdm
 from pyhocon import ConfigFactory, HOCONConverter
-from dataset.dtu import Dataset
+from dataset.dataset import Dataset
 from models.fields import ResidualRenderingNetwork
 from models.fields import SDFNetwork, UDFNetwork, BetaNetwork
 from models.fields import SingleVarianceNetwork
@@ -290,9 +290,6 @@ class Runner:
 
             rays_o, rays_d, true_rgb, mask = data[:, :3], data[:, 3: 6], data[:, 6: 9], data[:, 9: 10]
 
-            if self.dataset_name == 'scannet':
-                depth = data[:, 10:11]
-
             near, far = self.dataset.near_far_from_sphere(rays_o, rays_d)
 
             mask = (mask > 0.5).float()
@@ -310,9 +307,6 @@ class Runner:
                                               cos_anneal_ratio=self.get_cos_anneal_ratio())
 
             weight_sum = render_out['weight_sum']
-            weight_sum_fg_bg = render_out['weight_sum_fg_bg']
-
-            pred_depth = render_out['depth']
 
             color_base = render_out['color_base']
             color = render_out['color']
@@ -364,7 +358,7 @@ class Runner:
             if self.variance_network_fine.variance.requires_grad is False and self.iter_step > 20000:
                 self.variance_network_fine.set_trainable()
 
-            if not self.full_training_schedule:
+            if not self.reg_weights_schedule:
                 igr_ns_weight = self.igr_ns_weight
                 sparse_weight = self.sparse_weight
             else:

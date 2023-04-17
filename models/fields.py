@@ -211,10 +211,10 @@ class UDFNetwork(nn.Module):
                          dim=-1)
 
     def udf(self, x):
-        return self.forward(x)[0][:, :1]
+        return self.forward(x)[:, :1]
 
     def udf_hidden_appearance(self, x):
-        return self.forward(x)[0]
+        return self.forward(x)
 
     def gradient(self, x):
         x.requires_grad_(True)
@@ -659,7 +659,7 @@ class BetaNetwork(nn.Module):
     def __init__(self,
                  init_var_beta=0.1,
                  init_var_gamma=0.1,
-                 init_var_zeta=0.1,
+                 init_var_zeta=0.05,
                  beta_min=0.00005,
                  requires_grad_beta=True,
                  requires_grad_gamma=True,
@@ -672,13 +672,18 @@ class BetaNetwork(nn.Module):
         self.beta_min = beta_min
 
     def get_beta(self):
-        return torch.exp(self.beta.clip(self.beta_min, 1.) * 10)
+        return torch.exp(self.beta * 10).clip(0, 1./self.beta_min)
 
     def get_gamma(self):
         return torch.exp(self.gamma * 10)
 
     def get_zeta(self):
-        return 1. / torch.exp(self.zeta * 10)
+        """
+        used for udf2prob mapping zeta*x/(1+zeta*x)
+        :return:
+        :rtype:
+        """
+        return self.zeta.abs()
 
     def set_beta_trainable(self):
         self.beta.requires_grad = True
@@ -688,7 +693,7 @@ class BetaNetwork(nn.Module):
         self.gamma = nn.Parameter(torch.Tensor([x]),
                                   requires_grad=self.gamma.requires_grad).to(self.gamma.device)
 
-    def forward(self):  # z_diff = z_vals - mean_depth
+    def forward(self):
         beta = self.get_beta()
         gamma = self.get_gamma()
         zeta = self.get_zeta()

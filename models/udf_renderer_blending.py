@@ -279,10 +279,9 @@ class UDFRendererBlending:
         z_vals, index = torch.sort(z_vals, dim=-1)
 
         if not last:
-            new_udf_output, new_net_gradients = self.udf_network(pts.reshape(-1, 3))
+            new_udf_output = self.udf_network(pts.reshape(-1, 3))
             new_udf_output = new_udf_output.reshape(batch_size, n_importance, -1)
             new_udf = new_udf_output[:, :, 0]
-            new_udf_feature_vector = new_udf_output[:, :, 1:]
             udf = torch.cat([udf, new_udf], dim=-1)
             xx = torch.arange(batch_size)[:, None].expand(batch_size, n_samples + n_importance).reshape(-1)
             index = index.reshape(-1)

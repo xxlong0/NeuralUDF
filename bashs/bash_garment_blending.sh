@@ -34,4 +34,4 @@ while [[ $# -gt 0 ]];do
 done
 
 CUDA_VISIBLE_DEVICES=${GPU} python exp_runner_blending.py --conf ./confs/udf_garment_blending.conf \
---case ${CASE} --threshold 0.005 --resolution 128 --vis_ray --full_training_schedule --sparse_weight ${SPARSE_WEIGHT}
+--case ${CASE} --threshold 0.005 --resolution 128 --vis_ray --reg_weights_schedule --sparse_weight ${SPARSE_WEIGHT}
