@@ -44,7 +44,7 @@ class PatchProjector():
 
     def patch_warp(self, pts, uv, normals, src_imgs,
                    ref_intrinsic, src_intrinsics,
-                   ref_c2w, src_c2ws, img_wh=None
+                   ref_c2w, src_c2ws, img_wh=None, detach_normal=False
                    ):
         """
 
@@ -59,6 +59,9 @@ class PatchProjector():
         :return:
         """
         device = pts.device
+
+        if detach_normal:
+            normals = normals.detach()
 
         N_rays, n_samples, _ = pts.shape
         N_pts = N_rays * n_samples

@@ -448,7 +448,8 @@ class UDFRendererBlending:
                 # * flip the direction of gradients
                 color_maps,
                 intrinsics[0], intrinsics,
-                query_c2w, torch.inverse(w2cs), img_wh=None
+                query_c2w, torch.inverse(w2cs), img_wh=None,
+                detach_normal=True   # detach the normals to avoid unstable optimization
             )  # (N_rays, n_samples, N_src, Npx, 3), (N_rays, n_samples, N_src, Npx)
             N_src, Npx = pts_patch_mask.shape[2:]
             pts_patch_color = pts_patch_color.view(batch_size, n_samples, N_src, Npx, 3)
@@ -536,14 +537,15 @@ class UDFRendererBlending:
 
         gradients = gradients.reshape(batch_size, n_samples, 3)
 
-        gradients = gradients / (
-                torch.linalg.norm(gradients, ord=2, dim=-1, keepdim=True) + 1e-5)  # normalize to unit vector
+        # gradients = gradients / (
+        #         torch.linalg.norm(gradients, ord=2, dim=-1, keepdim=True) + 1e-5)  # normalize to unit vector
 
         if torch.any(torch.isnan(gradient_error)).cpu().numpy().item():
             pdb.set_trace()
 
         if vis_prob is not None:
-            gradients_flip = gradients * vis_prob[:, :, None] + gradients * (1 - vis_prob[:, :, None]) * -1
+            # gradients_flip = gradients * vis_prob[:, :, None] + gradients * (1 - vis_prob[:, :, None]) * -1
+            gradients_flip = flip_sign.reshape([batch_size, n_samples, 1]) * gradients
         else:
             gradients_flip = gradients
 
