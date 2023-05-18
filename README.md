@@ -97,11 +97,11 @@ You can download the results of the methods mentioned in the paper here:
 As we stated in the paper, it's more difficult to train a UDF field than a SDF field, 
 since UDF doesn't enforce any topological assumption (like the surfaces are closed) and UDF is not differentiable at zero-level sets.
 Although we propose a series of strategies to alleviate the problem,
-there are still some limitations, and hope that they can be improved in the future.
+there are still some limitations, and hope that they can be addressed in the future.
 -  The weight of the geometric regularization sometimes is sensitive to some cases, and need to be tuned for better results.
-Maybe a more robust regularization can handle this.
+Maybe a more robust regularization stragtegy can handle this.
 - How to initialize the UDF field for open surfaces ? In the work, we still adopt sphere initialization.
-- How to extract mesh from the optimized UDF in a more robust way ? MeshUDF is a great work, 
+- How to extract mesh from the optimized UDF in a more robust way ? MeshUDF provides an inspiring and effective solution, 
 but it's sensitive to the gradients near zero-level sets, and cannot handle non-manifold surfaces.
 
 ## Citation
