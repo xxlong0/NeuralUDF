@@ -2,7 +2,6 @@
 
 ## [Project Page](https://www.xxlong.site/NeuralUDF/) | [Paper](https://arxiv.org/abs/2211.14173) 
 
-We have released the core codes now and will gradually release all the codes in the following days.
 
 ![](./docs/images/teaser.png)
 
