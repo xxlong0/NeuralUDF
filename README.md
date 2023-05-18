@@ -2,7 +2,7 @@
 
 ## [Project Page](https://www.xxlong.site/NeuralUDF/) | [Paper](https://arxiv.org/abs/2211.14173) 
 
-We have released the core codes now and will gradually release all the codes in the following days.
+We have released the core code now and will gradually release all the code in the following days.
 
 ![](./docs/images/teaser.png)
 
@@ -61,7 +61,7 @@ where `world_mat_xx` denotes the world to image projection matrix, and `scale_ma
 - **On objects with closed surfaces (DTU)**
 
 The training has two stages. 
-We apply blending-based patch loss (used in SparseNeuS) to further improve the reconstruction.
+We apply blending-based patch loss (used in SparseNeuS) to further improve the reconstruction quality.
 
 ```shell
 bash bashs/bash_dtu_blending.sh --gpu 0 --case scan118
@@ -95,7 +95,7 @@ You can download the results of the methods mentioned in the paper here:
 
 ### Discussions and future work
 As we stated in the paper, it's more difficult to train a UDF field than a SDF field, 
-since UDF doesn't adopt any geometric assumption(like the surfaces are closed) and UDF is not differentiable at zero-level sets.
+since UDF doesn't enforce any topological assumption (like the surfaces are closed) and UDF is not differentiable at zero-level sets.
 Although we propose a series of strategies to alleviate the problem,
 there are still some limitations, and hope that they can be improved in the future.
 -  The weight of the geometric regularization sometimes is sensitive to some cases, and need to be tuned for better results.
